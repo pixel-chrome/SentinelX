@@ -1,1 +1,5 @@
 supportdesk/node_modules
+.env
+*/.env
+*/*/.env
+cf_*.md
