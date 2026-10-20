@@ -162,7 +162,7 @@ Autres points qui touchent aux logs :
 | `status_code` | number | Code HTTP de la réponse | `302` |
 | `message` | string | Phrase lisible qui résume l'événement | `login failed` |
 | `query` | string ou null | Paramètres de l'URL, tels que reçus (texte brut, pas décodé) | `status=open'%20OR%201=1--` |
-| `body` | string ou null | Champs du formulaire envoyé, mot de passe masqué | `email=admin%40supportdesk.local&password=[REDACTED]` |
+| `body` | string ou null | Champs du formulaire envoyé, mot de passe masqué | `{"email":"test@gmail.com","password":"[REDACTED]"}` |
 | `remote_addr` | string | IP réelle de la connexion TCP (`req.socket.remoteAddress`). Non falsifiable. En Docker c'est souvent l'IP du pont Docker (`172.x`) | `172.18.0.1` |
 | `x_forwarded_for` | string ou null | En-tête `X-Forwarded-For` tel que reçu | `1.2.3.4` |
 | `resource_owner` | string ou null | Nom d'utilisateur du créateur du ticket demandé. Sert à repérer l'IDOR (`user` différent de `resource_owner`) | `jdupont` |
