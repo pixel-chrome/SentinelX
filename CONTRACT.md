@@ -3,7 +3,7 @@
 
 | Élément | Valeur |
 |---|---|
-| Version du contrat | `0.3.0` (draft) |
+| Version du contrat | `0.3.1` (draft) |
 | Date de dernière modification | `29/10/2026` |
 | Statut | ☑ Draft ☐ Validé par les 3 membres |
 | Revue | Premier check-in |
@@ -277,7 +277,9 @@ Le volume `app_logs` est monté en lecture seule dans `wazuh.manager`, au même 
 Le décodeur JSON natif suffit, on n'écrit pas de décodeur à nous.
 
 ### Piège
-Une règle native, la `86600` (« Suricata messages », niveau 0), matche nos lignes à cause du champ `event_type`. Elle ne crée pas d'alerte, mais nos règles ne doivent pas s'appuyer dessus. Elles testent le décodeur `json` et la valeur de `data.event_type`.
+Une règle native, la `86600` (« Suricata messages », niveau 0), matche tous nos logs : elle demande juste un JSON avec `timestamp` et `event_type`. Wazuh s'arrête à elle et ne regarde que ses enfants, donc une règle à nous écrite avec `<decoded_as>json</decoded_as>` ne se déclenche jamais (testé). Toutes nos règles sont donc des enfants de la 86600 : `<if_sid>86600</if_sid>` puis un test sur la valeur de `event_type` ou d'un autre champ.
+
+Autre piège : une règle de base à niveau 0 n'est pas gardée en mémoire, donc une règle de fréquence qui s'appuie dessus ne compte rien. Notre règle de base pour les 404 est à niveau 1 (pas d'alerte, car le seuil d'alerte est 3).
 
 ### Règles custom
 - Fichier : `wazuh/config/wazuh_cluster/rules/supportdesk_rules.xml`.
@@ -289,9 +291,11 @@ Une règle native, la `86600` (« Suricata messages », niveau 0), matche nos li
 |---|---|---|---|---|
 | `100100` | Échec de login (règle de base) | `event_type` = `auth_failure` | 3 | brute force |
 | `100101` | Brute force | 5 × `100100` avec la même `source_ip` en 60 s | 10 | brute force |
-| `100110` | Injection SQL | `query` ou `body` contient un motif SQL (`UNION SELECT`, `OR 1=1`, `'--`, `sleep(`) | 10 | injection SQL |
+| `100110` | Injection SQL dans l'URL | `query` contient un motif SQL (`UNION SELECT`, `OR 1=1`, `'--`, `sleep(`) | 10 | injection SQL |
+| `100111` | Injection SQL dans le formulaire | pareil, dans `body` | 10 | injection SQL |
 | `100120` | Path traversal | `query` contient `../` ou sa forme encodée (`%2e%2e`) | 10 | path traversal |
-| `100130` | Scan d'adresses | 10 × `not_found` avec la même `source_ip` en 30 s | 8 | scan |
+| `100129` | Page introuvable (règle de base) | `event_type` = `not_found` | 1 (pas d'alerte) | scan |
+| `100130` | Scan d'adresses | 10 × `100129` avec la même `source_ip` en 30 s | 8 | scan |
 | `100140` | SSRF | `event_type` = `admin_fetch` | 8 | SSRF |
 
 Les seuils et les niveaux sont des points de départ. On les ajustera avec les tests et le taux de faux positifs, et chaque changement va dans le changelog.
@@ -423,3 +427,4 @@ Le `README.md` a trois parties séparées :
 | 0.1.1 | `<19/10/2026>` | `Gabriel` | Modif version de Node pour le lancement de l'app (voir `19-10-2026.md`)|
 | 0.2.0 | `<28/10/2026>` | `Wally` | Sections 3, 4, 5 (variables, endpoints, schéma des logs) et 12 (décisions ouvertes). |
 | 0.3.0 | `<29/10/2026>` | `Wally` | Sections 2 (architecture, ports, volumes), 6 (métriques), 7 (conventions Wazuh et règles prévues), 8, 9, 10, 11 (documentation) et 12 (décisions prises et ouvertes). Types `http_request` et `server_error` renommés `request` et `error`. Ajout de `/metrics` dans les endpoints, de `LOG_FILE` dans les variables. Ordre des champs de la section 5 : les 11 champs du sujet d'abord. |
+| 0.3.1 | `<29/10/2026>` | `Wally` | Section 7 : règles de Wazuh testées. Nos règles sont des enfants de la règle native 86600 (`if_sid`), règle de base 404 passée à niveau 1, règle `100111` (SQLi dans le body) et `100129` ajoutées. |
