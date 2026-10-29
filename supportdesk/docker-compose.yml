@@ -6,14 +6,14 @@
 # Wazuh can take 5-15 minutes to become fully operational after first start.
 
 include:
-  -path:
+  - path:
     - ./wazuh/docker-compose.yml
     - ./wazuh/app-logs.override.yml
 
 services:
   # app
   supportdesk:
-    build: .
+    build: ./supportdesk
     ports:
       - "3000:3000"
     environment:
@@ -22,7 +22,7 @@ services:
       - LOG_FILE=/var/log/supportdesk/app.log
     volumes:
       # le logger ecrit app.log ici, wazuh.manager le lit en readOnly
-      - app_logs: /var/log/support
+      - app_logs:/var/log/support
     restart: unless-stopped
   
   # supervision
@@ -37,3 +37,22 @@ services:
     depends_on:
       - supportdesk
     restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.2.4
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  app_logs:
+  prometheus_data:
+  grafana_data:
