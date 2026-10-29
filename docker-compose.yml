@@ -22,7 +22,7 @@ services:
       - LOG_FILE=/var/log/supportdesk/app.log
     volumes:
       # le logger ecrit app.log ici, wazuh.manager le lit en readOnly
-      - app_logs: /var/log/support
+      - app_logs:/var/log/supportdesk
     restart: unless-stopped
   
   # supervision
