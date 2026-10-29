@@ -60,6 +60,8 @@ router.post('/search', isAuthenticated, (req, res) => {
 router.get('/:id/export', isAuthenticated, (req, res) => {
   const ticket = db.prepare('SELECT * FROM tickets WHERE id = ?').get(req.params.id)
   if (!ticket) return res.status(404).send('Not found')
+  const owner = db.prepare('SELECT username FROM users WHERE id = ?').get(ticket.created_by)
+  res.locals.resource_owner = owner ? owner.username : null //Envoie le nom d'utilisateur du créateur du ticket pour les logs
   const comments = db.prepare(
     'SELECT * FROM comments WHERE ticket_id = ? ORDER BY created_at ASC'
   ).all(req.params.id)
@@ -86,6 +88,7 @@ router.get('/:id', isAuthenticated, (req, res) => {
     WHERE t.id = ?
   `).get(req.params.id)
   if (!ticket) return res.status(404).send('Ticket not found')
+  res.locals.resource_owner = ticket.creator_name || null //Envoie le nom d'utilisateur du créateur du ticket pour les logs
   const comments = db.prepare(`
     SELECT c.*, u.username as author_name
     FROM comments c
