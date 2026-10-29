@@ -1,0 +1,107 @@
+<!--
+  Règles custom SupportDesk. IDs réservés : 100100 à 100199 (voir CONTRACT.md section 7).
+  Les logs sont en JSON : le décodeur natif "json" range chaque champ sous data.<nom>.
+  Dans une règle, on écrit juste le nom du champ (ex. event_type), sans "data.".
+  Piège : la règle native 86600 (Suricata, niveau 0) matche tout JSON qui a "timestamp" et "event_type",
+  donc nos logs. Wazuh descend alors dans ses enfants et ignore les règles de premier niveau.
+  Nos règles sont donc des enfants de 86600 (<if_sid>86600</if_sid>).
+-->
+<group name="supportdesk,">
+
+  <!-- 1. BRUTE FORCE -->
+
+  <!-- Un échec de login. Niveau bas : une erreur de mot de passe seule est normale. -->
+  <rule id="100100" level="3">
+    <if_sid>86600</if_sid>
+    <field name="event_type">^auth_failure$</field>
+    <description>SupportDesk : échec de connexion</description>
+    <group>authentication_failed,</group>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+
+  <!-- Plusieurs échecs de la même source en peu de temps : brute force. -->
+  <rule id="100101" level="10" frequency="5" timeframe="60">
+    <if_matched_sid>100100</if_matched_sid>
+    <same_field>source_ip</same_field>
+    <description>SupportDesk : brute force sur le login (5 échecs en 60 s depuis la même source)</description>
+    <group>authentication_failures,</group>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+
+  <!-- 2. INJECTION SQL -->
+
+  <!-- Motifs SQL dans l'URL (query). La query est brute (pas décodée) : on gère %20, +, %27. -->
+  <rule id="100110" level="10">
+    <if_sid>86600</if_sid>
+    <field name="query" type="pcre2">(?i)(union(\+|%20|\s)+(all(\+|%20|\s)+)?select|(%27|')(\+|%20|\s)*(or|and)(\+|%20|\s)|(%27|')(\+|%20|\s)*(--|%2d%2d|#|;)|(or|and)(\+|%20|\s)+\d+(\+|%20|\s)*=(\+|%20|\s)*\d+|sleep\(|benchmark\()</field>
+    <description>SupportDesk : motif d'injection SQL dans l'URL</description>
+    <group>sql_injection,web,</group>
+    <mitre>
+      <id>T1190</id>
+    </mitre>
+  </rule>
+
+  <!-- Mêmes motifs dans le body (formulaire, ex. POST /tickets/search). -->
+  <rule id="100111" level="10">
+    <if_sid>86600</if_sid>
+    <field name="body" type="pcre2">(?i)(union(\+|%20|\s)+(all(\+|%20|\s)+)?select|(%27|')(\+|%20|\s)*(or|and)(\+|%20|\s)|(%27|')(\+|%20|\s)*(--|%2d%2d|#|;)|(or|and)(\+|%20|\s)+\d+(\+|%20|\s)*=(\+|%20|\s)*\d+|sleep\(|benchmark\()</field>
+    <description>SupportDesk : motif d'injection SQL dans le corps de la requête</description>
+    <group>sql_injection,web,</group>
+    <mitre>
+      <id>T1190</id>
+    </mitre>
+  </rule>
+
+  <!-- 3. PATH TRAVERSAL -->
+
+  <!-- ../ en clair ou encodé (%2e%2e%2f, ..%2f) dans les paramètres de l'URL. -->
+  <rule id="100120" level="10">
+    <if_sid>86600</if_sid>
+    <field name="query" type="pcre2">(?i)(\.\./|\.\.\\|%2e%2e(%2f|/|%5c)|\.\.%2f|\.\.%5c)</field>
+    <description>SupportDesk : tentative de path traversal</description>
+    <group>web,attack,</group>
+    <mitre>
+      <id>T1190</id>
+    </mitre>
+  </rule>
+
+  <!-- 4. SCAN D'ADRESSES -->
+
+  <!-- Base : une page introuvable. Niveau 1 = pas d'alerte seule (le seuil d'alerte est 3 et une 404 est banale),
+       mais la règle sert de brique pour 100130. Avec le niveau 0, Wazuh ne la garde pas en mémoire
+       et la règle de fréquence ne compte rien. -->
+  <rule id="100129" level="1">
+    <if_sid>86600</if_sid>
+    <field name="event_type">^not_found$</field>
+    <description>SupportDesk : page introuvable (404)</description>
+  </rule>
+
+  <!-- Beaucoup de 404 de la même source en peu de temps : scan. -->
+  <rule id="100130" level="8" frequency="10" timeframe="30">
+    <if_matched_sid>100129</if_matched_sid>
+    <same_field>source_ip</same_field>
+    <description>SupportDesk : scan d'adresses (10 pages introuvables en 30 s depuis la même source)</description>
+    <group>web,attack,</group>
+    <mitre>
+      <id>T1595</id>
+    </mitre>
+  </rule>
+
+  <!-- 5. SSRF -->
+
+  <!-- Le serveur télécharge une URL donnée par l'admin (POST /admin/fetch). -->
+  <rule id="100140" level="8">
+    <if_sid>86600</if_sid>
+    <field name="event_type">^admin_fetch$</field>
+    <description>SupportDesk : le serveur télécharge une URL (SSRF possible)</description>
+    <group>web,attack,</group>
+    <mitre>
+      <id>T1190</id>
+    </mitre>
+  </rule>
+
+</group>
