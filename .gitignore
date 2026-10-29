@@ -4,3 +4,5 @@ supportdesk/node_modules
 */*/.env
 supportdesk/supportdesk.db
 cf_*.md
+# Wazuh : certificats generes en local, ne jamais committer
+wazuh/config/wazuh_indexer_ssl_certs/
