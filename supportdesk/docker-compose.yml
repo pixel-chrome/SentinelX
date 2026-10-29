@@ -5,7 +5,13 @@
 # Check your machine resources before starting the complete stack.
 # Wazuh can take 5-15 minutes to become fully operational after first start.
 
+include:
+  -path:
+    - ./wazuh/docker-compose.yml
+    - ./wazuh/app-logs.override.yml
+
 services:
+  # app
   supportdesk:
     build: .
     ports:
@@ -13,4 +19,21 @@ services:
     environment:
       - SESSION_SECRET=dev-secret-change-in-prod
       - PORT=3000
+      - LOG_FILE=/var/log/supportdesk/app.log
+    volumes:
+      # le logger ecrit app.log ici, wazuh.manager le lit en readOnly
+      - app_logs: /var/log/support
+    restart: unless-stopped
+  
+  # supervision
+  prometheus:
+    image: prom/prometheus:v3.13.5
+    ports:
+      - "9090:9090"
+    volumes:
+      # path temporaire (en attendant le travail de Paul)
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      - supportdesk
     restart: unless-stopped
