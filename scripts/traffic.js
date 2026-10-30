@@ -22,7 +22,6 @@ const ACCOUNTS = [
   ['kwhite', 'User_123'], ['rlee', 'User_123'], ['aperez', 'User_123'],
   ['sbrown', 'User_123'], ['nlindqvist', 'User_123']
 ]
-const TICKET_COUNT = 44
 const SEARCHES = ['printer', 'vpn', 'outlook', 'wifi', 'laptop', 'access', 'network', 'screen']
 const STATUSES = ['open', 'in_progress', 'resolved', 'closed']
 const PRIORITIES = ['urgent', 'high', 'medium', 'low']
@@ -54,6 +53,8 @@ class VirtualUser {
     this.email = `${username}@supportdesk.local`
     this.ip = `198.51.100.${10 + index}`
     this.cookie = ''
+    this.lastBody = ''
+    this.myTickets = []
   }
 
   async request (method, path, form) {
@@ -66,7 +67,7 @@ class VirtualUser {
     }
     try {
       const res = await fetch(BASE_URL + path, { method, headers, body, redirect: 'manual' })
-      await res.arrayBuffer()
+      this.lastBody = Buffer.from(await res.arrayBuffer()).toString('utf8')
       const setCookie = res.headers.getSetCookie ? res.headers.getSetCookie() : []
       if (setCookie.length > 0) this.cookie = setCookie.map((c) => c.split(';')[0]).join('; ')
       stats.requests++
@@ -97,19 +98,28 @@ class VirtualUser {
     return this.login(this.password)
   }
 
+  // Un employé n'ouvre que ses propres tickets (sinon Wazuh le prend pour un IDOR).
+  // Les identifiants viennent de la liste « mes tickets », comme dans un vrai navigateur.
+  async loadMyTickets () {
+    const res = await this.request('GET', '/tickets?view=mine')
+    const ids = [...this.lastBody.matchAll(/href="\/tickets\/(\d+)"/g)].map((m) => m[1])
+    this.myTickets = [...new Set(ids)]
+    return res
+  }
+
   async step () {
     const roll = rand() * 100
     if (roll < 20) return this.request('GET', '/tickets')
     if (roll < 35) return this.request('GET', `/tickets?status=${pick(STATUSES)}&priority=${pick(PRIORITIES)}`)
-    if (roll < 40) return this.request('GET', '/tickets?view=mine')
-    if (roll < 65) return this.request('GET', `/tickets/${1 + Math.floor(rand() * TICKET_COUNT)}`)
+    if (roll < 40 || this.myTickets.length === 0) return this.loadMyTickets()
+    if (roll < 65) return this.request('GET', `/tickets/${pick(this.myTickets)}`)
     if (roll < 75) return this.request('POST', '/tickets/search', { search: pick(SEARCHES) })
     if (roll < 83) return this.request('GET', '/kb')
     if (roll < 90) return this.request('GET', `/kb/view?doc=${pick(KB_DOCS)}`)
     if (roll < 94) return this.request('GET', '/dashboard')
     if (roll < 97) return this.request('GET', '/profile')
     if (roll < 99) return this.request('POST', '/profile', { display_name: this.username, theme: pick(THEMES) })
-    return this.request('POST', `/tickets/${1 + Math.floor(rand() * TICKET_COUNT)}/comment`, { content: pick(COMMENTS) })
+    return this.request('POST', `/tickets/${pick(this.myTickets)}/comment`, { content: pick(COMMENTS) })
   }
 
   async run () {
@@ -122,6 +132,7 @@ class VirtualUser {
       }
       await this.request('GET', '/logout')
       this.cookie = ''
+      this.myTickets = []
       await sleep((5 + rand() * 20) * 1000)
     }
   }
