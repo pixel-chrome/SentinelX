@@ -5,6 +5,8 @@ const path = require('path')
 const db = require('./database/db')
 const seed = require('./database/seed')
 const { isAuthenticated } = require('./middleware/auth')
+const { register } = require('./monitoring/metrics')
+const metricsMiddleware = require('./monitoring/metrics_middleware')
 
 const authRouter = require('./routes/auth')
 const ticketsRouter = require('./routes/tickets')
@@ -31,6 +33,20 @@ app.use(session({
   resave: false,
   saveUninitialized: false
 }))
+
+// Route Prometheus
+app.get('/metrics', async (req, res, next) => {
+    try {
+        res.set('Content-Type', register.contentType)
+        res.end(await register.metrics())
+    } catch (error) {
+        next(error)
+    }
+})
+
+// Middleware métriques
+app.use(metricsMiddleware)
+
 //ajout du middleware logger pour capturer les événements HTTP
 app.use(require('./middleware/logger'))
 
