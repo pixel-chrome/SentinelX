@@ -3,8 +3,8 @@
 
 | Élément | Valeur |
 |---|---|
-| Version du contrat | `0.3.1` (draft) |
-| Date de dernière modification | `29/10/2026` |
+| Version du contrat | `0.3.2` (draft) |
+| Date de dernière modification | `30/10/2026` |
 | Statut | Validé par les 3 membres |
 | Revue | Premier check-in |
 
@@ -151,7 +151,7 @@ Autres points qui touchent aux logs :
 - Le mot de passe n'est jamais écrit, ni dans `body` ni ailleurs. On met `[REDACTED]` à la place.
 - `query` et `body` sont coupés à 500 caractères.
 - La ligne est faite avec `JSON.stringify`, qui transforme les retours à la ligne en texte (\n). Un attaquant ne peut donc pas fabriquer de fausses lignes de log.
-- Les 11 premiers champs du tableau (de `timestamp` à `body`) sont ceux du sujet, avec ses noms. Les 4 derniers sont à nous.
+- Les 11 premiers champs du tableau (de `timestamp` à `body`) sont ceux du sujet, avec ses noms. Les 6 derniers sont à nous.
 
 ### Champs
 
@@ -172,6 +172,8 @@ Autres points qui touchent aux logs :
 | `x_forwarded_for` | string ou null | En-tête `X-Forwarded-For` tel que reçu | `1.2.3.4` |
 | `resource_owner` | string ou null | Nom d'utilisateur du créateur du ticket demandé. Sert à repérer l'IDOR (`user` différent de `resource_owner`) | `jdupont` |
 | `user_agent` | string ou null | Outil qui envoie la requête | `curl/8.5.0` |
+| `idor_suspect` | boolean | `true` si un utilisateur qui n'est pas admin lit la ressource d'un autre (`user` différent de `resource_owner`). Calculé par le logger car Wazuh ne compare pas deux champs | `false` |
+| `ip_mismatch` | boolean | `true` si `source_ip` est différent de `remote_addr` (en retirant le préfixe `::ffff:`), c'est-à-dire un `X-Forwarded-For` forgé. Calculé par le logger | `false` |
 
 ### À propos du champ `user`
 
@@ -304,11 +306,17 @@ Autre piège : une règle de base à niveau 0 n'est pas gardée en mémoire, don
 | `100129` | Page introuvable (règle de base) | `event_type` = `not_found` | 1 (pas d'alerte) | scan |
 | `100130` | Scan d'adresses | 10 × `100129` avec la même `source_ip` en 30 s | 8 | scan |
 | `100140` | SSRF | `event_type` = `admin_fetch` | 8 | SSRF |
+| `100150` | IDOR | `idor_suspect` = `true` | 8 | IDOR |
+| `100160` | Usurpation d'IP | `ip_mismatch` = `true` | 7 | usurpation d'IP |
 
 Les seuils et les niveaux sont des points de départ. On les ajustera avec les tests et le taux de faux positifs, et chaque changement va dans le changelog.
 
-### Limite : comparer deux champs
-Wazuh ne sait pas comparer deux champs d'une même ligne (à notre connaissance). Donc `user` ≠ `resource_owner` (IDOR) et `source_ip` ≠ `remote_addr` (usurpation d'IP) ne s'écrivent pas directement en règle. Voir section 12.
+### Comparer deux champs
+Wazuh ne sait pas comparer deux champs d'une même ligne (à notre connaissance). Le logger fait donc la comparaison et écrit le résultat dans `idor_suspect` et `ip_mismatch` (section 5). Les règles `100150` et `100160` testent seulement `true`.
+
+- Ces deux règles sont placées en dernier dans le fichier : si une autre règle correspond à la même ligne (ex. injection SQL), c'est elle qui alerte.
+- `idor_suspect` ignore les admins (ils ont le droit de lire tous les tickets).
+- **Temporaire :** `100160` exclut la plage `198.51.100.0/24`, utilisée par `scripts/traffic.js` (une IP par employé simulé avec `X-Forwarded-For`). Sans cette exclusion, le trafic normal fait 100 % de faux positifs. **À supprimer avant la livraison** (ligne `negate="yes"` dans `supportdesk_rules.xml`) pour que la règle s'applique à toutes les sources.
 
 ### À vérifier pendant le dry-run
 Pour chaque règle, l'alerte doit apparaître dans le dashboard avec le bon niveau (`rule.level`), la bonne source (`data.source_ip`) et le bon type (`data.event_type`). Un autre membre doit pouvoir refaire le test avec le mode d'emploi de la section 11.
@@ -423,7 +431,6 @@ Le `README.md` a trois parties séparées :
 | Sujet | Question | Statut |
 |---|---|---|
 | Certificats Wazuh | Un dépôt fraîchement cloné n'a pas les certificats (non committés). Un service du compose qui les génère au premier démarrage, ou une étape dans le README ? Le sujet veut un `docker compose up` sans erreur | À trancher (Gabriel et Wally) |
-| IDOR et usurpation d'IP | Wazuh ne compare pas deux champs. Le logger calcule un champ (ex. `idor_suspect`, `ip_mismatch`) ou on laisse ces deux détections de côté ? | À trancher (Paul et Wally) |
 | Versions des images | Figer les versions exactes de Prometheus et Grafana | Gabriel |
 | Valeurs du script de trafic | Nombre d'utilisateurs, durée, outil | À valider en équipe |
 | Accès aux fichiers statiques | Pas couverts par le logger (section 5) | Limite assumée, à confirmer |
@@ -438,6 +445,7 @@ Le `README.md` a trois parties séparées :
 | 0.2.0 | `<28/10/2026>` | `Wally` | Sections 3, 4, 5 (variables, endpoints, schéma des logs) et 12 (décisions ouvertes). |
 | 0.3.0 | `<29/10/2026>` | `Wally` | Sections 2 (architecture, ports, volumes), 6 (métriques), 7 (conventions Wazuh et règles prévues), 8, 9, 10, 11 (documentation) et 12 (décisions prises et ouvertes). Types `http_request` et `server_error` renommés `request` et `error`. Ajout de `/metrics` dans les endpoints, de `LOG_FILE` dans les variables. Ordre des champs de la section 5 : les 11 champs du sujet d'abord. |
 | 0.3.1 | `<29/10/2026>` | `Wally` | Section 7 : règles de Wazuh testées. Nos règles sont des enfants de la règle native 86600 (`if_sid`), règle de base 404 passée à niveau 1, règle `100111` (SQLi dans le body) et `100129` ajoutées. |
+| 0.3.2 | `<30/10/2026>` | `Wally` | Sections 5 et 7 : champs `idor_suspect` et `ip_mismatch` ajoutés aux logs, règles `100150` (IDOR) et `100160` (usurpation d'IP) ajoutées. Le champ `endpoint` est maintenant le chemin complet (`/admin/fetch` et non `/fetch`), ce qui répare la détection `admin_fetch`. Bloc `localfile` ajouté dans `wazuh_manager.conf`. Section 12 : décision IDOR / usurpation d'IP prise (le logger calcule les champs). Exclusion temporaire de la plage du script de trafic dans `100160`. |
 | 0.3.2 | `<29/10/2026>` | `Gabriel` | Construction du docker-compose (sans test) qui inclu les containers pour `Grafana` et `Prometheus` + modif de la section 2/Composants & 6/Grafana + doc détaillée (voir `29-10-2026.md`) |
 | 0.4.0 | `<30/10/2026>` | `Paul` | Ajout des métriques Prometheus dans /metrics : `Nb total de requêtes HTTP reçues` / `Nb de tentatives d'authentification` / `Nb d'erreurs` / `Temps des requêtes` / `Nb de sessions actives` |
 | 0.4.1 | `<30/10/2026>` | `Gabriel` | Finition du docker + push dans le dev de `29-10-2026.md` + premier jet pour le dashboard de grafana `grafana/dashboards/supportdesk.json` |
