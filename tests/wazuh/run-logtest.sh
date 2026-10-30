@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Rejoue les cas de cases.tsv dans wazuh-logtest et vérifie la règle finale de chaque cas.
-# Usage : tests/wazuh/run-logtest.sh   (le conteneur wazuh-wazuh.manager-1 doit tourner)
+# Usage : tests/wazuh/run-logtest.sh   (le conteneur sentinelx-wazuh.manager-1 doit tourner)
 cd "$(dirname "$0")" || exit 1
-CONTAINER=${CONTAINER:-wazuh-wazuh.manager-1}
+CONTAINER=${CONTAINER:-sentinelx-wazuh.manager-1}
 pass=0; fail=0
 while IFS=$'\t' read -r expected repeat title line; do
   got=$(for _ in $(seq "$repeat"); do echo "$line"; done \
