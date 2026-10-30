@@ -1,7 +1,10 @@
 const Database = require('better-sqlite3')
 const path = require('path')
 
-const db = new Database(path.join(__dirname, '..', 'supportdesk.db'))
+// Modification pour créer une db de test si on fait npm test
+const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'supportdesk.db')
+
+const db = new Database(dbPath)
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (

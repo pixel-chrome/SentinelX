@@ -85,6 +85,11 @@ app.use((err, req, res, next) => {
   res.status(500).send('Internal server error')
 })
 
-app.listen(PORT, () => {
-  console.log(`SupportDesk running on http://localhost:${PORT}`)
-})
+// Lance le serveur seulement si ce fichier est exécuté directement, on peut donc le tester sans lancer le serveur
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`SupportDesk running on http://localhost:${PORT}`)
+  })
+}
+
+module.exports = app

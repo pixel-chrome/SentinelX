@@ -10,7 +10,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const logDirectory = '/var/log/supportdesk'
+const logDirectory = process.env.LOG_DIR ||'/var/log/supportdesk'
 const logFile = path.join(logDirectory, 'app.log')
 
 fs.mkdirSync(logDirectory, { recursive: true })
