@@ -131,7 +131,7 @@ function detectEvent(req, res) {
     // Téléchargement d'une URL par l'administrateur
     if (
         req.method === 'POST' &&
-        req.path === '/admin/fetch'
+        req.baseUrl + req.path === '/admin/fetch'
     ) {
         return {
             event_type: 'admin_fetch',
@@ -182,7 +182,7 @@ function logger(req, res, next) {
       user: detected.event_type === 'auth_failure'
           ? (req.body?.email || null)
           : (req.session?.username || null),
-      endpoint: req.path,
+      endpoint: req.baseUrl + req.path,
       method: req.method,
       status_code: res.statusCode,
 
