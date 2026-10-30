@@ -1,0 +1,9 @@
+# Complément du wazuh/docker-compose.yml, chargé par le compose racine via include.
+# Il ne modifie pas le fichier de Wally : Compose fusionne les deux.
+# Rôle : donner au manager Wazuh l'accès en lecture seule aux logs de l'application.
+# Le volume app_logs est déclaré dans le docker-compose.yml racine.
+
+services:
+  wazuh.manager:
+    volumes:
+      - app_logs:/var/log/supportdesk:ro
