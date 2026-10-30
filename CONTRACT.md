@@ -366,6 +366,9 @@ Pour chaque règle, l'alerte doit apparaître dans le dashboard avec le bon nive
 ### Commits
 - Format : `type(zone): description courte`. Types : `feat`, `fix`, `docs`, `test`, `chore`, `config`. Exemple : `feat(logs): ajoute le champ remote_addr`.
 - Petits et fréquents, un sujet par commit. Pas de `wip`, `maj`, ou `fix` tout seul.
+- Exeptions : 
+   - `oualalalal` pour un commit temporaire ou non fonctionnel.
+   - `minor changes` pour un commit de moins de 10 lignes.
 
 ### Organisation
 
