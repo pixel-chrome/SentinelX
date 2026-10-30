@@ -53,13 +53,18 @@
 | Service (nom dans le compose) | Image | Port sur la machine → port dans le conteneur | Rôle |
 |---|---|---|---|
 | `supportdesk` | construite depuis `supportdesk/` (Node 22) | `3000` → `3000` | L'application, ses logs et `/metrics` |
-| `prometheus` | `prom/prometheus` (version à figer) | `9090` → `9090` | Récupère `/metrics` de l'app |
-| `grafana` | `grafana/grafana` (version à figer) | `3001` → `3000` | Affiche les métriques |
+| `prometheus` | `prom/prometheus:v3.13.5` | `9090` → `9090` | Récupère `/metrics` de l'app |
+| `grafana` | `grafana/grafana:13.2.4` | `3001` → `3000` | Affiche les métriques |
 | `wazuh.manager` | `wazuh/wazuh-manager:4.14.9` | `1514`, `1515`, `55000` (+ `514/udp`) | Lit les logs, applique les règles |
 | `wazuh.indexer` | `wazuh/wazuh-indexer:4.14.9` | `9200` → `9200` | Stocke les alertes |
 | `wazuh.dashboard` | `wazuh/wazuh-dashboard:4.14.9` | `443` → `5601` | Interface web de Wazuh (HTTPS) |
 
 Grafana est sur `3001` parce que dans son conteneur il écoute déjà sur `3000`, comme l'app. Sur la machine on les sépare pour qu'ils ne se marchent pas dessus.
+
+Versions figées (vérifiées le 29/10/2026 sur endoflife.date), jamais latest, pour qu'un dépôt fraîchement cloné donne le même résultat :
+   - Prometheus v3.13.5 : branche 3.13, version LTS, supportée jusqu'au 31/07/2027.
+   - Grafana 13.2.4 : dernière version activement supportée, correctifs de sécurité jusqu'au 18/05/2027.
+   - Wazuh 4.14.9 : version de la stack de Wally.
 
 ### Réseau
 - Un seul fichier `docker-compose.yml`, à la racine, lancé avec `docker compose up -d`.
@@ -247,6 +252,8 @@ Pour `resource_owner`, le logger ne peut pas le deviner tout seul : les routes `
 | Dashboard | fichier JSON dans `grafana/dashboards/`, chargé automatiquement |
 | Pourquoi du provisioning | Un dashboard fait à la main dans l'interface disparaît avec `docker compose down -v`. Un fichier versionné se recharge à chaque démarrage |
 | Panneaux minimum | requêtes par seconde, échecs de login par minute, latence p95, erreurs 5xx |
+| Image | `grafana/grafana:13.2.4` |
+| Fichiers de provisioning | (théoriquement)`grafana/provisioning/datasources/prometheus.yml` et `grafana/provisioning/dashboards/dashboards.yml`. Les dashboards sont dans `grafana/dashboards/`, monté dans `/etc/grafana/dashboards` |
 
 ---
 
@@ -428,3 +435,4 @@ Le `README.md` a trois parties séparées :
 | 0.2.0 | `<28/10/2026>` | `Wally` | Sections 3, 4, 5 (variables, endpoints, schéma des logs) et 12 (décisions ouvertes). |
 | 0.3.0 | `<29/10/2026>` | `Wally` | Sections 2 (architecture, ports, volumes), 6 (métriques), 7 (conventions Wazuh et règles prévues), 8, 9, 10, 11 (documentation) et 12 (décisions prises et ouvertes). Types `http_request` et `server_error` renommés `request` et `error`. Ajout de `/metrics` dans les endpoints, de `LOG_FILE` dans les variables. Ordre des champs de la section 5 : les 11 champs du sujet d'abord. |
 | 0.3.1 | `<29/10/2026>` | `Wally` | Section 7 : règles de Wazuh testées. Nos règles sont des enfants de la règle native 86600 (`if_sid`), règle de base 404 passée à niveau 1, règle `100111` (SQLi dans le body) et `100129` ajoutées. |
+| 0.3.2 | `<29/10/2026>` | `Gabriel` | Construction du docker-compose (sans test) qui inclu les containers pour `Grafana` et `Prometheus` + modif de la section 2/Composants & 6/Grafana + doc détaillée (voir `29-10-2026.md`) |
