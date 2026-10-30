@@ -66,6 +66,7 @@ function metricsMiddleware(req, res, next) {
                 })
             }
         }
+        // 5 Compteur de sessions actives. (dans routes/metrics.js)
     })
 
     next()

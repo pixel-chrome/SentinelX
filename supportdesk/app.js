@@ -5,7 +5,7 @@ const path = require('path')
 const db = require('./database/db')
 const seed = require('./database/seed')
 const { isAuthenticated } = require('./middleware/auth')
-const { register } = require('./monitoring/metrics')
+const { register, activeSessions } = require('./monitoring/metrics')
 const metricsMiddleware = require('./monitoring/metrics_middleware')
 
 const authRouter = require('./routes/auth')
