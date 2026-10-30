@@ -122,7 +122,7 @@ function detectEvent(req, res) {
     // Erreur interne
     if (status >= 500) {
         return {
-            event_type: 'server_error',
+            event_type: 'error',
             level: 'ERROR',
             message: 'server error'
         }
@@ -142,7 +142,7 @@ function detectEvent(req, res) {
 
     // Événement par défaut
     return {
-        event_type: 'http_request',
+        event_type: 'request',
         level: 'INFO',
         message: 'HTTP request'
     }

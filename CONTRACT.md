@@ -5,7 +5,7 @@
 |---|---|
 | Version du contrat | `0.3.1` (draft) |
 | Date de dernière modification | `29/10/2026` |
-| Statut | ☑ Draft ☐ Validé par les 3 membres |
+| Statut | Validé par les 3 membres |
 | Revue | Premier check-in |
 
 ### Règle de modification
