@@ -1,0 +1,30 @@
+{
+  "uid": "supportdesk-overview",
+  "title": "SupportDesk - Supervision",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Cible supportdesk",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        { "refId": "A", "expr": "up{instance=\"supportdesk:3000\"}" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Requêtes par seconde",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 6, "y": 0, "w": 18, "h": 8 },
+      "targets": [
+        { "refId": "A", "expr": "sum(rate(supportdesk_http_requests_total[1m]))" }
+      ]
+    }
+  ]
+}
