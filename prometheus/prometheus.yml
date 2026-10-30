@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 5s      # court pour voir les attaques en direct pendant la démo
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: supportdesk
+    metrics_path: /metrics
+    static_configs:
+      # nom du service Docker (réseau du compose), pas localhost
+      - targets: ["supportdesk:3000"]

@@ -5,8 +5,10 @@
 # Check your machine resources before starting the complete stack.
 # Wazuh can take 5-15 minutes to become fully operational after first start.
 
+name: sentinelx
+
 include:
-  -path:
+  - path:
     - ./wazuh/docker-compose.yml
     - ./wazuh/app-logs.override.yml
 
@@ -38,8 +40,8 @@ services:
       - supportdesk
     restart: unless-stopped
 
-  graphana:
-    image: graphana/graphana:13.2.4
+  grapfana:
+    image: grafana/grafana:13.2.4
     ports:
       - "3001:3000"
     environment:
@@ -51,3 +53,9 @@ services:
     depends_on:
       - prometheus
     restart: unless-stopped
+
+
+volumes:
+  app_logs:
+  prometheus_data:
+  grafana_data:
