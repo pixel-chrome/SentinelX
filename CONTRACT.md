@@ -440,3 +440,4 @@ Le `README.md` a trois parties séparées :
 | 0.3.1 | `<29/10/2026>` | `Wally` | Section 7 : règles de Wazuh testées. Nos règles sont des enfants de la règle native 86600 (`if_sid`), règle de base 404 passée à niveau 1, règle `100111` (SQLi dans le body) et `100129` ajoutées. |
 | 0.3.2 | `<29/10/2026>` | `Gabriel` | Construction du docker-compose (sans test) qui inclu les containers pour `Grafana` et `Prometheus` + modif de la section 2/Composants & 6/Grafana + doc détaillée (voir `29-10-2026.md`) |
 | 0.4.0 | `<30/10/2026>` | `Paul` | Ajout des métriques Prometheus dans /metrics : `Nb total de requêtes HTTP reçues` / `Nb de tentatives d'authentification` / `Nb d'erreurs` / `Temps des requêtes` / `Nb de sessions actives` |
+| 0.4.1 | `<30/10/2026>` | `Gabriel` | Finition du docker + push dans le dev de `29-10-2026.md` + premier jet pour le dashboard de grafana `grafana/dashboards/supportdesk.json` |
