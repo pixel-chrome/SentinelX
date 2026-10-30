@@ -104,4 +104,36 @@
     </mitre>
   </rule>
 
+  <!-- 6. IDOR ET USURPATION D'IP -->
+  <!-- Wazuh ne compare pas deux champs : le logger calcule idor_suspect et ip_mismatch (CONTRACT.md section 5).
+       Ces règles sont placées en dernier : si une autre règle de ce fichier correspond à la même ligne
+       (ex. une injection SQL), c'est elle qui alerte. -->
+
+  <!-- Un utilisateur (hors admin) lit une ressource qui appartient à un autre (user différent de resource_owner). -->
+  <rule id="100150" level="8">
+    <if_sid>86600</if_sid>
+    <field name="idor_suspect">^true$</field>
+    <description>SupportDesk : accès à la ressource d'un autre utilisateur (IDOR possible)</description>
+    <group>web,attack,</group>
+    <mitre>
+      <id>T1190</id>
+    </mitre>
+  </rule>
+
+  <!-- L'IP retenue par l'application n'est pas celle de la connexion (source_ip différent de remote_addr),
+       c'est-à-dire un en-tête X-Forwarded-For forgé. -->
+  <rule id="100160" level="7">
+    <if_sid>86600</if_sid>
+    <field name="ip_mismatch">^true$</field>
+    <!-- TEMPORAIRE (tests) : scripts/traffic.js simule une IP par employé avec X-Forwarded-For,
+         dans la plage 198.51.100.0/24. On l'exclut pour mesurer les faux positifs.
+         À SUPPRIMER avant la livraison : la règle doit s'appliquer à toutes les sources. -->
+    <field name="source_ip" negate="yes">^198\.51\.100\.</field>
+    <description>SupportDesk : usurpation d'adresse IP (X-Forwarded-For forgé)</description>
+    <group>web,attack,</group>
+    <mitre>
+      <id>T1090</id>
+    </mitre>
+  </rule>
+
 </group>

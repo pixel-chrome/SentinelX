@@ -131,7 +131,7 @@ function detectEvent(req, res) {
     // Téléchargement d'une URL par l'administrateur
     if (
         req.method === 'POST' &&
-        req.path === '/admin/fetch'
+        req.baseUrl + req.path === '/admin/fetch'
     ) {
         return {
             event_type: 'admin_fetch',
@@ -168,9 +168,15 @@ function formatData(data, maxLength = 500) {
         : text
 }
 
+// Retire le préfixe IPv4-mappé d'IPv6 (::ffff:172.19.0.1 devient 172.19.0.1) pour comparer deux adresses
+function normalizeIp(ip) {
+  return ip ? ip.replace(/^::ffff:/, '') : null
+}
+
 function logger(req, res, next) {
   res.on('finish', () => {
     const detected = detectEvent(req, res)
+    const username = req.session?.username || null
     const event = {
       timestamp: new Date().toISOString(),
       level: detected.level,
@@ -182,7 +188,7 @@ function logger(req, res, next) {
       user: detected.event_type === 'auth_failure'
           ? (req.body?.email || null)
           : (req.session?.username || null),
-      endpoint: req.path,
+      endpoint: req.baseUrl + req.path,
       method: req.method,
       status_code: res.statusCode,
 
@@ -196,7 +202,18 @@ function logger(req, res, next) {
 
       message: detected.message,
       resource_owner: res.locals.resource_owner || null,
-      user_agent: req.headers['user-agent'] || null
+      user_agent: req.headers['user-agent'] || null,
+
+      // Champs calculés ici car Wazuh ne sait pas comparer deux champs d'une même ligne.
+      // IDOR : un utilisateur (hors admin) lit une ressource qui appartient à un autre.
+      idor_suspect: Boolean(
+          username &&
+          res.locals.resource_owner &&
+          username !== res.locals.resource_owner &&
+          req.session?.role !== 'admin'
+      ),
+      // Usurpation d'IP : l'IP retenue (source_ip) n'est pas celle de la connexion TCP (remote_addr).
+      ip_mismatch: normalizeIp(req.ip) !== normalizeIp(req.socket.remoteAddress)
     };
 
     writeLog(event);
