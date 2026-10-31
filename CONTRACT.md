@@ -449,3 +449,4 @@ Le `README.md` a trois parties séparées :
 | 0.3.2 | `<29/10/2026>` | `Gabriel` | Construction du docker-compose (sans test) qui inclu les containers pour `Grafana` et `Prometheus` + modif de la section 2/Composants & 6/Grafana + doc détaillée (voir `29-10-2026.md`) |
 | 0.4.0 | `<30/10/2026>` | `Paul` | Ajout des métriques Prometheus dans /metrics : `Nb total de requêtes HTTP reçues` / `Nb de tentatives d'authentification` / `Nb d'erreurs` / `Temps des requêtes` / `Nb de sessions actives` |
 | 0.4.1 | `<30/10/2026>` | `Gabriel` | Finition du docker + push dans le dev de `29-10-2026.md` + premier jet pour le dashboard de grafana `grafana/dashboards/supportdesk.json` et push tardif de `doc/30-10-2026.md` |
+| 0.4.2 | `<31/10/2026>` | `Gabriel` | dashboard pour grafana complet avec les 6 panneaux (`dashboard.md`) |
