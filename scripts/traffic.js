@@ -150,10 +150,11 @@ async function main () {
   const stop = () => { running = false }
   process.on('SIGINT', stop)
   process.on('SIGTERM', stop)
-  if (DURATION_MIN > 0) setTimeout(stop, DURATION_MIN * 60000)
+  const deadline = DURATION_MIN > 0 ? setTimeout(stop, DURATION_MIN * 60000) : null
   // Démarrage échelonné : les utilisateurs n'arrivent pas tous à la même seconde.
   await Promise.all(users.map(async (user, i) => { await sleep(i * 3000); await user.run() }))
   clearInterval(ticker)
+  clearTimeout(deadline)
   report('terminé')
 }
 
