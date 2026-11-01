@@ -316,7 +316,6 @@ Wazuh ne sait pas comparer deux champs d'une même ligne (à notre connaissance)
 
 - Ces deux règles sont placées en dernier dans le fichier : si une autre règle correspond à la même ligne (ex. injection SQL), c'est elle qui alerte.
 - `idor_suspect` ignore les admins (ils ont le droit de lire tous les tickets).
-- **Temporaire :** `100160` exclut la plage `198.51.100.0/24`, utilisée par `scripts/traffic.js` (une IP par employé simulé avec `X-Forwarded-For`). Sans cette exclusion, le trafic normal fait 100 % de faux positifs. **À supprimer avant la livraison** (ligne `negate="yes"` dans `supportdesk_rules.xml`) pour que la règle s'applique à toutes les sources.
 
 ### À vérifier pendant le dry-run
 Pour chaque règle, l'alerte doit apparaître dans le dashboard avec le bon niveau (`rule.level`), la bonne source (`data.source_ip`) et le bon type (`data.event_type`). Un autre membre doit pouvoir refaire le test avec le mode d'emploi de la section 11.

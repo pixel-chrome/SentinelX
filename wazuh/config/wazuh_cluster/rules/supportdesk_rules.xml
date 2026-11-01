@@ -125,10 +125,6 @@
   <rule id="100160" level="7">
     <if_sid>86600</if_sid>
     <field name="ip_mismatch">^true$</field>
-    <!-- TEMPORAIRE (tests) : scripts/traffic.js simule une IP par employé avec X-Forwarded-For,
-         dans la plage 198.51.100.0/24. On l'exclut pour mesurer les faux positifs.
-         À SUPPRIMER avant la livraison : la règle doit s'appliquer à toutes les sources. -->
-    <field name="source_ip" negate="yes">^198\.51\.100\.</field>
     <description>SupportDesk : usurpation d'adresse IP (X-Forwarded-For forgé)</description>
     <group>web,attack,</group>
     <mitre>
