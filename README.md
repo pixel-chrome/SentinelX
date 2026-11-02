@@ -81,4 +81,15 @@ Attention : il génère de vraies alertes. Ne pas le lancer pendant une mesure d
 
 ## 3. Lancer les tests
 
-À compléter (Paul et Gabriel) : tests fonctionnels, sécurité, charge, reprise, lecture de la couverture (`doc/couverture.md`).
+À compléter (Paul et Gabriel) : tests fonctionnels, sécurité, charge, lecture de la couverture (`doc/couverture.md`).
+
+### Tests de reprise
+
+```bash
+tests/recovery/recovery.sh
+```
+
+Arrête/redémarre `supportdesk` et vérifie quatre choses : le service revient, les sessions (en
+mémoire) sont perdues, la base SQLite est reconstruite par le seed si le container est recréé, et
+la cible Prometheus repasse `UP`. Détails et résultats dans `tests/recovery/README.md`, y compris
+ce que Wazuh perd pendant une panne de son manager.
