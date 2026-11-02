@@ -14,7 +14,7 @@ Version 1.0, rédigé le 30-10-2026 avant toute exécution. Auteur : Gabriel.
 - Observation en lecture seule : `/metrics`, `app.log`, dashboard Wazuh.
 
 ### Vecteurs d'attaque
-- Brute force par dictionnaire sur un seul compte (password guessing).
+- Brute force par dictionnaire sur un seul compte (password guessing ex: rockyou.txt).
 - Variante en démonstration live : même attaque avec `X-Forwarded-For` falsifié pour montrer la limite de la règle (traitée dans un plan ultérieur ou en bonus).
 
 ### Outils utilisés
