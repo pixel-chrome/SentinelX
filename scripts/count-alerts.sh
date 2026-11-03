@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Liste et compte les alertes Wazuh d'une fenêtre de temps (pour le taux de faux positifs, doc/qualification.md).
+# Liste et compte les alertes Wazuh d'une fenêtre de temps (pour le taux de faux positifs, docs/qualification.md).
 # Usage : scripts/count-alerts.sh DEBUT FIN     (heures en UTC, format ISO : 2026-10-31T23:28 2026-11-01T01:28)
 # Variable : CONTAINER (sentinelx-wazuh.manager-1). Outils : docker, jq.
 CONTAINER=${CONTAINER:-sentinelx-wazuh.manager-1}

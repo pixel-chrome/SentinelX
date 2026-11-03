@@ -33,7 +33,7 @@ Prérequis : la stack tourne (`docker compose up -d`) et le conteneur `sentinelx
 
 5. Dans chaque alerte, vérifier trois champs : `rule.level` (sévérité), `data.source_ip` (qui attaque), `data.event_type` (quoi). La chronologie en haut montre quand les alertes sont arrivées.
 
-Captures d'écran de référence (dashboard, liste filtrée, détail d'alerte, Ruleset Test) : `doc/captures/`.
+Captures d'écran de référence (dashboard, liste filtrée, détail d'alerte, Ruleset Test) : `docs/captures/`.
 
 Ligne de commande, sans dashboard (alertes du jour, une ligne par alerte) :
 
@@ -73,11 +73,18 @@ tests/wazuh/e2e.sh
 
 Le script joue une attaque par règle (brute force, injection SQL dans l'URL et le formulaire, parcours de répertoire, scan, SSRF, IDOR, usurpation d'IP) et attend l'alerte attendue. Il affiche le niveau et le délai d'apparition de chacune.
 
-Attention : il génère de vraies alertes. Ne pas le lancer pendant une mesure de faux positifs (voir `doc/qualification.md`).
+Attention : il génère de vraies alertes. Ne pas le lancer pendant une mesure de faux positifs (voir `docs/qualification.md`).
 
 ### 2.4 Rejouer un runbook
 
-À compléter (Gabriel) : voir le dossier `runbooks/`.
+Chaque attaque a un plan (`attacks/plan-0X-<nom>.md`) et un runbook (`runbooks/runbook-0X-<nom>.md`)
+avec les commandes exactes, copiables :
+
+| Runbook | Règles couvertes |
+|---|---|
+| `runbook-01-brute-force-login.md` | `100100`, `100101` |
+| `runbook-02-injection-sql.md` | `100110`, `100111` |
+| `runbook-03-autres-attaques.md` | `100120`, `100130`, `100140`, `100150`, `100160` |
 
 ---
 
@@ -92,7 +99,7 @@ npm test
 
 Jest + Supertest, 3 suites (`admin`, `auth`, `tickets`), sans serveur ni base à lancer à la main
 (chaque test instancie sa propre app). Couverture : 5/5 endpoints critiques (`/login`, `/logout`,
-`/tickets`, `/tickets/:id`, `/admin`), détail dans `doc/couverture.md`.
+`/tickets`, `/tickets/:id`, `/admin`), détail dans `docs/couverture.md`.
 
 ### Tests de sécurité
 

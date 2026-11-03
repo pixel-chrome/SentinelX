@@ -70,6 +70,6 @@ rattrapé au redémarrage — ces événements ne généreront jamais d'alerte. 
 via le volume `app_logs`) et les métriques `/metrics` gardent une trace de ce qui s'est passé
 pendant la coupure ; Wazuh, lui, ne la voit jamais.
 
-Conséquence pratique à documenter ailleurs (`doc/qualification.md` ou un runbook) : une panne du
+Conséquence pratique à documenter ailleurs (`docs/qualification.md` ou un runbook) : une panne du
 manager Wazuh crée un angle mort de détection pour toute la durée de la panne, à combler en
 consultant `app.log` ou les métriques a posteriori si une attaque est suspectée sur cette période.
