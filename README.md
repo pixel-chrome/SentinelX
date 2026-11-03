@@ -8,7 +8,89 @@ Le README a trois parties : lancer l'application, lire et rejouer une détection
 
 ## 1. Lancer l'application
 
-À compléter (Paul) : prérequis, certificats Wazuh, `docker compose up -d`, adresses, vérification, arrêt.
+### Prérequis
+
+- Docker et Docker Compose v2 (`docker compose version`).
+- **8 à 12 Go de RAM libres** pour la machine : Wazuh (manager + indexer + dashboard) en consomme
+  la majorité. En dessous, le manager ou l'indexer peuvent ne jamais passer `healthy` (voir
+  « Si ça ne démarre pas » plus bas).
+- `vm.max_map_count` à au moins `262144` (requis par `wazuh.indexer`, basé sur OpenSearch) :
+
+```bash
+sysctl vm.max_map_count
+# si < 262144 :
+sudo sysctl -w vm.max_map_count=262144
+```
+
+### Certificats Wazuh (une seule fois)
+
+Les certificats ne sont pas committés (`wazuh/config/wazuh_indexer_ssl_certs/`, ignoré par Git). À
+générer avant le tout premier démarrage :
+
+```bash
+cd wazuh
+docker compose -f generate-indexer-certs.yml run --rm generator
+cd ..
+```
+
+### Variables d'environnement
+
+```bash
+cp .env.example .env
+```
+
+Mettre une valeur dans `GF_SECURITY_ADMIN_PASSWORD` (mot de passe admin de Grafana). Les autres
+variables ont des valeurs par défaut utilisables telles quelles (voir `CONTRACT.md` section 3).
+
+### Démarrer
+
+```bash
+docker compose up -d
+```
+
+`docker-compose.yml` (racine) inclut `wazuh/docker-compose.yml` et `wazuh/app-logs.override.yml` :
+une seule commande démarre tout (`supportdesk`, `prometheus`, `grafana`, `wazuh.manager`,
+`wazuh.indexer`, `wazuh.dashboard`).
+
+### Adresses
+
+| Service | Adresse | Identifiants |
+|---|---|---|
+| SupportDesk | http://localhost:3000 | comptes du seed, voir `supportdesk/database/seed.js` |
+| Prometheus | http://localhost:9090 | — |
+| Grafana | http://localhost:3001 | `admin` / `GF_SECURITY_ADMIN_PASSWORD` du `.env` |
+| Dashboard Wazuh | https://localhost | identifiants par défaut du dépôt Docker officiel Wazuh (certificat auto-signé : accepter l'avertissement du navigateur) |
+
+### Vérifier que tout est `UP`
+
+```bash
+docker compose ps
+```
+
+Tous les services doivent être `Up` (le dashboard et l'indexer Wazuh passent par `starting` puis
+`healthy`, ça peut prendre 5 à 15 minutes au premier démarrage). Pour l'app :
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/login   # attendu : 200
+```
+
+### Si ça ne démarre pas (manque de RAM)
+
+Avec moins de 8 Go de RAM libres, `wazuh.indexer` ou `wazuh.manager` peuvent rester `starting` ou
+redémarrer en boucle (`docker compose logs wazuh.indexer`). Dans ce cas, lancer la stack sans
+Wazuh pour travailler sur l'app, les métriques ou les tests fonctionnels/charge/reprise (les tests
+`tests/wazuh/` et les runbooks, eux, ont besoin de Wazuh) :
+
+```bash
+docker compose up -d supportdesk prometheus grafana
+```
+
+### Arrêter
+
+```bash
+docker compose down        # garde les volumes (données Wazuh, base SQLite reconstruite au besoin)
+docker compose down -v     # tout supprime, y compris les volumes
+```
 
 ---
 
@@ -103,8 +185,14 @@ Jest + Supertest, 3 suites (`admin`, `auth`, `tickets`), sans serveur ni base à
 
 ### Tests de sécurité
 
-À compléter (Paul) : dossier `tests/security/`, cas prévus par le contrat (payload SQL sur
-`/tickets`, `../` sur `/kb/view`, page protégée sans session, cookie de session forgé).
+```bash
+cd supportdesk
+npm test -- tests/security/
+```
+
+4 suites dans `supportdesk/tests/security/` (lancées aussi par un `npm test` complet) : payload SQL
+sur `/tickets`, `../` sur `/kb/view`, page protégée sans session, cookie de session forgé. Elles
+vérifient que les failles volontaires sont bien reproductibles. Détail dans `docs/security_test.md`.
 
 ### Tests de charge
 

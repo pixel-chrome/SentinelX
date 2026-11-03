@@ -8,7 +8,7 @@ L'objectif n'est pas de corriger les vulnérabilités, car l'application est vol
 
 ## Tests réalisés
 
-Les tests sont situés dans `tests/security/`.
+Les tests sont situés dans `supportdesk/tests/security/`.
 
 ### 1. SQL Injection
 

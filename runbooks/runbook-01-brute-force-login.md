@@ -68,17 +68,17 @@ curl -s http://localhost:9090/api/v1/query --data-urlencode 'query=supportdesk_a
 
 Nombre total de tentatives envoyées par hydra : lu dans la sortie `-V` du terminal de l'étape 2 (une ligne par tentative) ou dans le résumé final affiché par hydra (`N valid passwords found` / `N of N targets completed`).
 
-## 6. Résultat observé (à compléter lors du test réel, avant la démo)
+## 6. Résultat observé (exécution réelle du 2026-11-03, 14:45:35-14:45:40)
 
 | Élément | Valeur |
 |---|---|
-| Date/heure de l'essai | |
-| Tentatives envoyées (hydra) | |
-| Délai entre le lancement et l'alerte 100101 | |
-| Niveau de l'alerte obtenue | |
-| `source_ip` de l'alerte | |
-| Variation de `supportdesk_auth_attempts_total{result="failure"}` | |
-| Conclusion (succès nominal / arrêt par durée / arrêt par volume / abandon) | |
+| Date/heure de l'essai | 2026-11-03, 14:45:35 (lancement hydra) |
+| Tentatives envoyées (hydra) | 100/100 (`1 of 1 target completed, 0 valid password found`) |
+| Délai entre le lancement et l'alerte 100101 | ~5 s (hydra terminé à 14:45:40, alerte horodatée 13:45:40.78 UTC) |
+| Niveau de l'alerte obtenue | 10 (conforme au critère de succès) |
+| `source_ip` de l'alerte | `::ffff:172.19.0.1` |
+| `supportdesk_auth_attempts_total{result="failure"}` juste après l'essai | 140 (compteur cumulé depuis le démarrage du conteneur, pas isolé à cet essai — le critère « augmente d'au moins 20 » est satisfait par construction : 100 tentatives envoyées, toutes en échec) |
+| Conclusion | Succès nominal : alerte 100101 niveau 10 obtenue bien avant la durée maximale (3 min) et le volume maximal (200 tentatives) du plan |
 
 ## Ce que ce runbook prouve et ne prouve pas
 
