@@ -33,6 +33,8 @@ Prérequis : la stack tourne (`docker compose up -d`) et le conteneur `sentinelx
 
 5. Dans chaque alerte, vérifier trois champs : `rule.level` (sévérité), `data.source_ip` (qui attaque), `data.event_type` (quoi). La chronologie en haut montre quand les alertes sont arrivées.
 
+Captures d'écran de référence (dashboard, liste filtrée, détail d'alerte, Ruleset Test) : `doc/captures/`.
+
 Ligne de commande, sans dashboard (alertes du jour, une ligne par alerte) :
 
 ```bash
@@ -81,7 +83,31 @@ Attention : il génère de vraies alertes. Ne pas le lancer pendant une mesure d
 
 ## 3. Lancer les tests
 
-À compléter (Paul et Gabriel) : tests fonctionnels, sécurité, charge, lecture de la couverture (`doc/couverture.md`).
+### Tests fonctionnels
+
+```bash
+cd supportdesk
+npm test
+```
+
+Jest + Supertest, 3 suites (`admin`, `auth`, `tickets`), sans serveur ni base à lancer à la main
+(chaque test instancie sa propre app). Couverture : 5/5 endpoints critiques (`/login`, `/logout`,
+`/tickets`, `/tickets/:id`, `/admin`), détail dans `doc/couverture.md`.
+
+### Tests de sécurité
+
+À compléter (Paul) : dossier `tests/security/`, cas prévus par le contrat (payload SQL sur
+`/tickets`, `../` sur `/kb/view`, page protégée sans session, cookie de session forgé).
+
+### Tests de charge
+
+```bash
+node tests/load/load.js
+```
+
+N utilisateurs du seed en boucle sur `GET /tickets` pendant une durée donnée (`USERS`,
+`DURATION_S`, voir `tests/load/README.md`). Affiche le débit, la latence (moyenne/p50/p95/max) et
+le taux d'erreur. Résultats déjà obtenus dans `tests/load/README.md`.
 
 ### Tests de reprise
 
