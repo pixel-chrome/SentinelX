@@ -449,3 +449,4 @@ Le `README.md` a trois parties séparées :
 | 0.4.0 | `<30/10/2026>` | `Paul` | Ajout des métriques Prometheus dans /metrics : `Nb total de requêtes HTTP reçues` / `Nb de tentatives d'authentification` / `Nb d'erreurs` / `Temps des requêtes` / `Nb de sessions actives` |
 | 0.4.1 | `<30/10/2026>` | `Gabriel` | Finition du docker + push dans le dev de `29-10-2026.md` + premier jet pour le dashboard de grafana `grafana/dashboards/supportdesk.json` et push tardif de `doc/30-10-2026.md` |
 | 0.4.2 | `<31/10/2026>` | `Gabriel` | dashboard pour grafana complet avec les 6 panneaux (`dashboard.md`) |
+| 0.4.3 | `<03/11/2026>` | `Paul` | Ajout de tests de sécurité (`sql-injection.test.js`, `access-control.test.js`, `session-cookie.test.js`, `path-traversal.test.js`) + documentation des tests (`security_test.md`) |
