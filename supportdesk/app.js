@@ -35,14 +35,7 @@ app.use(session({
 }))
 
 // Route Prometheus
-app.get('/metrics', async (req, res, next) => {
-    try {
-        res.set('Content-Type', register.contentType)
-        res.end(await register.metrics())
-    } catch (error) {
-        next(error)
-    }
-})
+app.use('/metrics', require('./routes/metrics'))
 
 // Middleware métriques
 app.use(metricsMiddleware)
