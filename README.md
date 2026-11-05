@@ -166,7 +166,7 @@ avec les commandes exactes, copiables :
 |---|---|
 | `runbook-01-brute-force-login.md` | `100100`, `100101` |
 | `runbook-02-injection-sql.md` | `100110`, `100111` |
-| `runbook-03-autres-attaques.md` | `100120`, `100130`, `100140`, `100150`, `100160` |
+| `runbook-03-ip-spoofing.md` | `100160` |
 
 ---
 
